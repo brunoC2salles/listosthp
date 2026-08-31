@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;700;900&family=Oswald:wght@700&display=swap');
+@import "tailwindcss";
+@import "./styles/globals.css";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bebas Neue", sans-serif;
+  --font-heading: "Oswald", sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 { perspective: 1000px; }
+  .transform-style-3d { transform-style: preserve-3d; }
+  .translate-z-10 { transform: translateZ(10px); }
+  
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .reveal-element { 
+    opacity: 0; 
+    transform: translateY(30px); 
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); 
+  }
+  .reveal-element.is-visible { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+
+  .reveal-left { 
+    opacity: 0; 
+    transform: translateX(-50px); 
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); 
+  }
+  .reveal-right { 
+    opacity: 0; 
+    transform: translateX(50px); 
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); 
+  }
+  .reveal-left.is-visible, .reveal-right.is-visible { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+
+  @keyframes slow-zoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+  }
+  .animate-slow-zoom {
+    animation: slow-zoom 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 1s ease-out forwards;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .animate-gradient {
+    animation: gradient 6s ease infinite;
+  }
+}
