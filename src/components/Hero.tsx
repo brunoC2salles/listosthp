@@ -4,8 +4,8 @@ import { TiltCard } from './TiltCard';
 
 export const Hero: React.FC = () => {
   const handleStartNow = () => {
-    const message = encodeURIComponent("¡Hola! Acabo de ver la página web de Tu Hogar Posible y quiero saber más sobre la hipoteca al 100% que ofrecen.");
-    window.location.href = `https://wa.me/34722708068?text=${message}`;
+    const message = encodeURIComponent("¡Hola! Acabo de ver la página web de Tu Hogar Posible y quiero saber más sobre la hipoteca que ofrecen.");
+    window.location.href = `https://wa.me/34681198915?text=${message}`;
   };
 
   return (
@@ -37,7 +37,7 @@ export const Hero: React.FC = () => {
 
             <p className="text-xl lg:text-3xl text-slate-200 max-w-3xl leading-relaxed font-light tracking-wide mx-auto lg:mx-0">
               Por esto te ofrecemos financiación al 100% y viviendas de banco más accesibles. <br />
-              Todo esto con un servicio gratuito.
+              Todo esto con un servicio gratuito con financiación hasta el 80%.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5 pt-6 justify-center lg:justify-start">
