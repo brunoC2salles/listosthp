@@ -11,13 +11,13 @@ const COMPARISON_DATA = [
   },
   {
     service: 'Estudio hipotecario gratuito',
-    thp: 'Gratis incluso para hipotecas al 100%',
+    thp: 'Gratis incluso para hipotecas al 80%',
     trad: 'Muchos cobran',
   },
   {
-    service: 'Estudios gratuitos',
+    service: 'Pago antecipado',
     thp: 'Sin coste real',
-    trad: 'Normalmente solo hasta el 80%',
+    trad: 'Normalmente con pago antecipado',
   },
   {
     service: 'Asesoramiento personalizado',
