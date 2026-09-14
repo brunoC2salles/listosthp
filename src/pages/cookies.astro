@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CookiesPageWrapper } from '../react-pages/CookiesPageWrapper';
+---
+
+<Layout
+  title="Política de Cookies | Tu Hogar Posible"
+  description="Política de cookies de Tu Hogar Posible: qué cookies utilizamos y cómo puedes gestionarlas."
+  path="/cookies"
+>
+  <CookiesPageWrapper client:load />
+</Layout>

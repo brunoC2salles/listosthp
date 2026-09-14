@@ -15,9 +15,9 @@ const COLUMNS = [
   {
     h: 'Legal',
     items: [
-      { label: 'Aviso legal', href: '#/legal' },
-      { label: 'Privacidad', href: '#/legal' },
-      { label: 'Cookies', href: '#/cookies' },
+      { label: 'Aviso legal', href: '/legal' },
+      { label: 'Privacidad', href: '/legal' },
+      { label: 'Cookies', href: '/cookies' },
     ],
   },
 ];

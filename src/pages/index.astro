@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { HomePage } from '../react-pages/HomePage';
+---
+
+<Layout
+  title="Tu Hogar Posible | Hipotecas al 100% sin ahorros previos en España"
+  description="Financiación hipotecaria hasta el 100% sin necesidad de ahorros previos. Accede a viviendas de banco más accesibles. Servicio gratuito, sin coste para el comprador."
+  path="/"
+>
+  <HomePage client:load />
+</Layout>

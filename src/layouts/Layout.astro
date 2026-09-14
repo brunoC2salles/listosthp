@@ -1,0 +1,67 @@
+---
+import '../index.css';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string; // e.g. "/", "/legal"
+  schema?: Record<string, unknown>;
+}
+
+const { title, description, path, schema } = Astro.props;
+const canonical = new URL(path, Astro.site).toString();
+const ogImage = 'https://i.postimg.cc/sDJjBrq5/logo-mark.png';
+
+const defaultSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: 'Tu Hogar Posible',
+  url: canonical,
+  image: ogImage,
+  telephone: '+34722708068',
+  areaServed: 'ES',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Calle Muntaner 262, 5',
+    postalCode: '08021',
+    addressLocality: 'Barcelona',
+    addressCountry: 'ES',
+  },
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="Tu Hogar Posible" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema ?? defaultSchema)} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
