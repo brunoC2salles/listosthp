@@ -66,7 +66,7 @@ export function LeadForm({ cta }: { cta: string }) {
               <DarkInput label="Importe aproximado de la vivienda" prefix="€" value={form.importe} onChange={set('importe')} placeholder="220.000" />
               <Button type="submit" size="lg" fullWidth>{cta}<ArrowRight size={16} /></Button>
               <div style={{ font: `400 12px/1.5 ${FONT_STACK}`, color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-                Al enviar aceptas nuestra <a href="#/legal" style={{ color: 'rgba(255,255,255,0.7)' }}>política de privacidad</a>.
+                Al enviar aceptas nuestra <a href="/legal" style={{ color: 'rgba(255,255,255,0.7)' }}>política de privacidad</a>.
               </div>
             </form>
           )}
