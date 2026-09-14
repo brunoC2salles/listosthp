@@ -30,7 +30,7 @@ export const AgencySolutionPage: React.FC<AgencySolutionPageProps> = ({ onBack }
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop" 
-            alt="Modern Office" 
+            alt="Oficina moderna de una agencia inmobiliaria" 
             className="w-full h-full object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 via-slate-900 to-slate-900" />
@@ -139,7 +139,7 @@ export const AgencySolutionPage: React.FC<AgencySolutionPageProps> = ({ onBack }
                 <div className="rounded-[3rem] overflow-hidden shadow-2xl border-8 border-slate-50 h-full">
                   <img 
                     src="https://www.imovirtual.com/noticias/wp-content/uploads/2022/02/a4ca31f4-cc66-4c20-814c-2f98874a6410_iStock-1329458192.jpg" 
-                    alt="Frustrated Agent" 
+                    alt="Agente inmobiliario frustrado por una operación bloqueada en el banco" 
                     className="w-full h-full object-cover min-h-[500px]"
                   />
                 </div>
@@ -192,7 +192,7 @@ export const AgencySolutionPage: React.FC<AgencySolutionPageProps> = ({ onBack }
                 <div className="rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white/10">
                   <img 
                     src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1000&auto=format&fit=crop" 
-                    alt="Success Solution" 
+                    alt="Agente inmobiliario satisfecho tras cerrar una operación con éxito" 
                     className="w-full h-[500px] object-cover"
                   />
                 </div>
@@ -337,7 +337,7 @@ export const AgencySolutionPage: React.FC<AgencySolutionPageProps> = ({ onBack }
             <div className="relative aspect-video bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl group cursor-pointer mb-12">
               <img 
                 src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=1000&auto=format&fit=crop" 
-                alt="Video Placeholder" 
+                alt="Vista previa del vídeo de demostración del sistema Tu Hogar Posible" 
                 className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 flex items-center justify-center">
