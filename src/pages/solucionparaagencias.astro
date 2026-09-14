@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { AgencySolutionPage } from '../components/AgencySolutionPage';
+import { AgencySolutionPageWrapper } from '../react-pages/AgencySolutionPageWrapper';
 ---
 
 <Layout
@@ -8,5 +8,5 @@ import { AgencySolutionPage } from '../components/AgencySolutionPage';
   description="Solución para agencias inmobiliarias: ofrece a tus clientes propiedades más económicas con financiación al 100%, sin ahorros previos."
   path="/solucionparaagencias"
 >
-  <AgencySolutionPage client:load />
+  <AgencySolutionPageWrapper client:load />
 </Layout>

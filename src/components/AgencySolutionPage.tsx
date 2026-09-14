@@ -56,9 +56,9 @@ export const AgencySolutionPage: React.FC<AgencySolutionPageProps> = ({ onBack }
                   <h1 className="text-5xl md:text-7xl lg:text-[10rem] font-black text-white leading-[0.9] tracking-tighter drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)]">
                     PROPRIEDADES <br /> MÁS ECONÓMICAS
                   </h1>
-                  <h1 className="text-3xl md:text-5xl lg:text-7xl font-black text-blue-400 leading-tight tracking-tighter drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]">
+                  <p className="text-3xl md:text-5xl lg:text-7xl font-black text-blue-400 leading-tight tracking-tighter drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]">
                     con 100% de financiación
-                  </h1>
+                  </p>
                 </motion.div>
               
               <RevealOnScroll direction="up">

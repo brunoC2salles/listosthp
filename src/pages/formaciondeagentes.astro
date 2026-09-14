@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { TrainingPage } from '../components/TrainingPage';
+import { TrainingPageWrapper } from '../react-pages/TrainingPageWrapper';
 ---
 
 <Layout
@@ -8,5 +8,5 @@ import { TrainingPage } from '../components/TrainingPage';
   description="Programa orientado a convertir a cualquier perfil, nuevo o con experiencia, en un agente inmobiliario operativo, consistente y rentable."
   path="/formaciondeagentes"
 >
-  <TrainingPage client:load />
+  <TrainingPageWrapper client:load />
 </Layout>
