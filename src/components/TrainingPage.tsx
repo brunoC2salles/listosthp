@@ -89,7 +89,7 @@ export const TrainingPage: React.FC<TrainingPageProps> = ({ onBack }) => {
                 <div className="rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white h-full relative min-h-[400px]">
                   <img 
                     src="https://st3.idealista.pt/news/arquivos/styles/fullwidth_xl/public/2023-03/images/pexels-edmond-dantes-4344860_1.jpg?VersionId=qmjWJv0yG5CFGP1rOEfRkHyHGESdaTpI&itok=bjyddOPa" 
-                    alt="Formación Agentes" 
+                    alt="Agente inmobiliario trabajando en la operativa diaria" 
                     className="w-full h-full object-cover" 
                   />
                   <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay" />
@@ -107,7 +107,7 @@ export const TrainingPage: React.FC<TrainingPageProps> = ({ onBack }) => {
                   <div className="rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white h-full relative min-h-[400px]">
                     <img 
                       src="https://i.postimg.cc/qq6xZV27/Chat-GPT-Image-Jan-27-2026-09-27-09-AM.png" 
-                      alt="Estrategia Comercial" 
+                      alt="Estrategia comercial y de ventas para agentes inmobiliarios" 
                       className="w-full h-full object-cover" 
                     />
                     <div className="absolute inset-0 bg-indigo-600/10 mix-blend-overlay" />
