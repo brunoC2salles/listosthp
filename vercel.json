@@ -1,0 +1,8 @@
+{
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/politica-de-privacidad", "destination": "/legal/", "permanent": true },
+    { "source": "/simuladores", "destination": "/", "permanent": true },
+    { "source": "/simuladores/credito-hipotecario", "destination": "/", "permanent": true }
+  ]
+}

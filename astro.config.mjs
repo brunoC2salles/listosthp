@@ -9,6 +9,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://www.tuhogarposible.com',
   output: 'static',
+  trailingSlash: 'always',
   integrations: [react(), sitemap()],
 
   vite: {
