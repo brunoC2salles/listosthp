@@ -15,9 +15,9 @@ const COLUMNS = [
   {
     h: 'Legal',
     items: [
-      { label: 'Aviso legal', href: '/legal' },
-      { label: 'Privacidad', href: '/legal' },
-      { label: 'Cookies', href: '/cookies' },
+      { label: 'Aviso legal', href: '/legal/' },
+      { label: 'Privacidad', href: '/legal/' },
+      { label: 'Cookies', href: '/cookies/' },
     ],
   },
 ];
@@ -48,7 +48,7 @@ export function Footer() {
         <div style={{ paddingTop: 32, borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ font: `400 13px ${FONT_STACK}`, color: '#9CA3AF' }}>© {new Date().getFullYear()} Tu Hogar Posible. Todos los derechos reservados.</div>
-            <div style={{ font: `400 12px ${FONT_STACK}`, color: '#9CA3AF' }}>Apunto Growth Agency S.L, con el nombre comercial Tu Hogar Posible</div>
+            <div style={{ font: `400 12px ${FONT_STACK}`, color: '#9CA3AF' }}>Apunto Growth Agency S.L., con el nombre comercial Tu Hogar Posible</div>
           </div>
           <div style={{ font: `400 13px ${FONT_STACK}`, color: '#9CA3AF' }}>Hecho en España.</div>
         </div>
