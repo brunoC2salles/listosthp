@@ -10,6 +10,12 @@ export default defineConfig({
   site: 'https://www.tuhogarposible.com',
   output: 'static',
   trailingSlash: 'always',
+  // Old indexed URLs from previous site versions -> current equivalents
+  redirects: {
+    '/politica-de-privacidad': '/legal/',
+    '/simuladores': '/',
+    '/simuladores/credito-hipotecario': '/',
+  },
   integrations: [react(), sitemap()],
 
   vite: {
