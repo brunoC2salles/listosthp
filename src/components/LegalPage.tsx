@@ -36,7 +36,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ onBack }) => {
               <div className="space-y-6">
                 <div>
                   <h3 className="font-bold text-slate-800">1. Responsable del tratamiento</h3>
-                  <p>Titular: Apunto Growth Agency S.L, con el nombre comercial Tu Hogar Posible</p>
+                  <p>Titular: Apunto Growth Agency S.L., con el nombre comercial Tu Hogar Posible</p>
                   <p>NIF/CIF: B67980078</p>
                   <p>Domicilio: Calle Muntaner 262, 5, 08021 Barcelona</p>
                   <p>Correo electrónico: contacto@tuhogarposible.com</p>
@@ -73,7 +73,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ onBack }) => {
                 <div>
                   <h3 className="font-bold text-slate-800">1. Información general</h3>
                   <p>En cumplimiento de la normativa vigente, se informa que:</p>
-                  <p>Titular del sitio web: Apunto Growth Agency S.L, con el nombre comercial Tu Hogar Posible</p>
+                  <p>Titular del sitio web: Apunto Growth Agency S.L., con el nombre comercial Tu Hogar Posible</p>
                   <p>NIF/CIF: B67980078</p>
                   <p>Domicilio: Calle Muntaner 262, 5, 08021 Barcelona</p>
                   <p>Correo electrónico: contacto@tuhogarposible.com</p>
