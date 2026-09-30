@@ -16,7 +16,15 @@ export default defineConfig({
     '/simuladores': '/',
     '/simuladores/credito-hipotecario': '/',
   },
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      // Pages kept online but not meant for search (noindex)
+      filter: (page) =>
+        !page.includes('/formaciondeagentes/') &&
+        !page.includes('/solucionparaagencias/'),
+    }),
+  ],
 
   vite: {
     plugins: [tailwindcss()]

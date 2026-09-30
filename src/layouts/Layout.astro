@@ -6,17 +6,23 @@ interface Props {
   description: string;
   path: string; // e.g. "/", "/legal"
   schema?: Record<string, unknown>;
+  noindex?: boolean;
 }
 
-const { title, description, path, schema } = Astro.props;
+const { title, description, path, schema, noindex = false } = Astro.props;
 const canonical = new URL(path, Astro.site).toString();
 const ogImage = 'https://i.postimg.cc/sDJjBrq5/logo-mark.png';
 
-const defaultSchema = {
-  '@context': 'https://schema.org',
+const siteUrl = new URL('/', Astro.site).toString();
+const logoUrl = new URL('/icon-512.png', Astro.site).toString();
+
+const organization = {
   '@type': 'RealEstateAgent',
+  '@id': `${siteUrl}#organization`,
   name: 'Tu Hogar Posible',
-  url: canonical,
+  legalName: 'Apunto Growth Agency S.L.',
+  url: siteUrl,
+  logo: logoUrl,
   image: ogImage,
   telephone: '+34722708068',
   areaServed: 'ES',
@@ -29,6 +35,21 @@ const defaultSchema = {
     addressCountry: 'ES',
   },
 };
+
+const website = {
+  '@type': 'WebSite',
+  '@id': `${siteUrl}#website`,
+  name: 'Tu Hogar Posible',
+  alternateName: ['TuHogarPosible', 'Tú Hogar Posible'],
+  url: siteUrl,
+  inLanguage: 'es-ES',
+  publisher: { '@id': `${siteUrl}#organization` },
+};
+
+const defaultSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [organization, website],
+};
 ---
 
 <!doctype html>
@@ -39,6 +60,12 @@ const defaultSchema = {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
