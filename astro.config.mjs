@@ -22,7 +22,8 @@ export default defineConfig({
       // Pages kept online but not meant for search (noindex)
       filter: (page) =>
         !page.includes('/formaciondeagentes/') &&
-        !page.includes('/solucionparaagencias/'),
+        !page.includes('/solucionparaagencias/') &&
+        !page.includes('/viviendas/'),
     }),
   ],
 
