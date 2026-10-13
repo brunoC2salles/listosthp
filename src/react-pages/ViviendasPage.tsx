@@ -412,8 +412,8 @@ export function ViviendasPage() {
       </header>
 
       <main style={WRAP}>
-        <section style={{ padding: '44px 0 32px', display: 'grid', gap: 14 }}>
-          {libre ? (
+        <section style={{ padding: '44px 0 32px', display: 'grid', gap: 14, minHeight: 160 }}>
+          {!ready ? null : libre ? (
             <>
               <Eyebrow color={C.blue}>Tu Hogar Posible</Eyebrow>
               <h1
