@@ -9,10 +9,12 @@ import { FONT_STACK } from '../ui/fontStack';
 
 // /viviendas/
 //  - Con enlace del lead (?i=<búsqueda Idealista del CRM> o ?ciudad=&max=): recomendaciones + búsqueda con su tope.
-//  - Sin enlace: solo búsqueda, rango fijo 70.000-210.000 € (decisión 13/10/2026).
+//  - Sin enlace: solo búsqueda, rango 70.000-250.000 € (decisión 13/10/2026).
+//  - Búsqueda: todos los anuncios del Voxhouses con los filtros elegidos, paginando con cursor.
 const API = 'https://tnzgpzablwfptagfbnvb.supabase.co/functions/v1/viviendas-recomendadas';
 const LIBRE_MIN = 70000;
-const LIBRE_MAX = 210000;
+const LIBRE_MAX = 250000;
+const BUSCAR_MAX = 250000; // tope de la búsqueda, con o sin enlace del lead (decisión 13/10/2026)
 const STEP = 5000;
 
 const C = {
@@ -39,7 +41,7 @@ type Vivienda = {
   fotos: string[];
   tags: string[];
   anunciante: string | null;
-  contacto: Contacto;
+  contacto: Contacto | null;
 };
 
 type Respuesta = {
@@ -48,7 +50,8 @@ type Respuesta = {
   techo: number;
   minimo: number;
   total: number;
-  nextOffset: number;
+  nextOffset?: number;
+  cursor?: string;
   hayMas: boolean;
   viviendas: Vivienda[];
   error?: string;
@@ -145,6 +148,11 @@ function Gallery({ fotos, titulo }: { fotos: string[]; titulo: string }) {
   };
   return (
     <div style={{ position: 'relative', aspectRatio: '4 / 3', background: C.surface, maxWidth: '100%' }}>
+      {fotos.length === 0 && (
+        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: C.muted, fontSize: 14 }}>
+          Sin fotos
+        </div>
+      )}
       <div
         ref={track}
         onScroll={onScroll}
@@ -187,7 +195,7 @@ function Gallery({ fotos, titulo }: { fotos: string[]; titulo: string }) {
 }
 
 function Card({ v, destacada = false }: { v: Vivienda; destacada?: boolean }) {
-  const wa = v.contacto.tipo === 'whatsapp';
+  const wa = v.contacto?.tipo === 'whatsapp';
   const btn: CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none',
     borderRadius: 9999, padding: '14px 18px', font: `700 15px/1 ${FONT_STACK}`, letterSpacing: '-0.01em',
@@ -259,26 +267,32 @@ function Card({ v, destacada = false }: { v: Vivienda; destacada?: boolean }) {
           </div>
         )}
         <div style={{ marginTop: 'auto', display: 'grid', gap: 8, paddingTop: 4 }}>
-          <a
-            href={v.contacto.url}
-            target={wa ? '_blank' : undefined}
-            rel={wa ? 'noopener' : undefined}
-            style={{ ...btn, background: C.blue, color: C.white }}
-          >
-            {wa ? <MessageCircle size={18} /> : <Phone size={18} />}
-            {wa ? 'Contactar por WhatsApp' : 'Llamar'}
-          </a>
+          {v.contacto && (
+            <a
+              href={v.contacto.url}
+              target={wa ? '_blank' : undefined}
+              rel={wa ? 'noopener' : undefined}
+              style={{ ...btn, background: C.blue, color: C.white }}
+            >
+              {wa ? <MessageCircle size={18} /> : <Phone size={18} />}
+              {wa ? 'Contactar por WhatsApp' : 'Llamar'}
+            </a>
+          )}
           <a
             href={v.url}
             target="_blank"
             rel="noopener"
-            style={{ ...btn, color: C.blue, boxShadow: `inset 0 0 0 1.5px ${C.blue}` }}
+            style={v.contacto
+              ? { ...btn, color: C.blue, boxShadow: `inset 0 0 0 1.5px ${C.blue}` }
+              : { ...btn, background: C.blue, color: C.white }}
           >
             Ver más <ExternalLink size={16} />
           </a>
-          <p style={{ margin: 0, textAlign: 'center', color: C.muted, fontSize: 13, userSelect: 'all' as const }}>
-            {v.anunciante ? `${v.anunciante} · ` : ''}{v.contacto.numero}
-          </p>
+          {(v.anunciante || v.contacto) && (
+            <p style={{ margin: 0, textAlign: 'center', color: C.muted, fontSize: 13, userSelect: 'all' as const }}>
+              {[v.anunciante, v.contacto?.numero].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
       </div>
     </article>
@@ -439,15 +453,15 @@ export function ViviendasPage() {
     return q;
   };
 
-  const runSearch = (q: URLSearchParams, offset = 0) => {
+  const runSearch = (q: URLSearchParams, cursor = '') => {
     setResLoading(true);
-    if (offset === 0) { setResItems([]); setSearched(q); setRes(null); }
-    fetch(`${API}?${q.toString()}&offset=${offset}&count=6`)
+    if (!cursor) { setResItems([]); setSearched(q); setRes(null); }
+    fetch(`${API}?${q.toString()}${cursor ? `&cursor=${cursor}` : ''}&count=6`)
       .then((r) => r.json())
       .then((d: Respuesta) => {
         if (d.error) throw new Error(d.error);
-        setRes(d);
-        setResItems((prev) => (offset === 0 ? d.viviendas : [...prev, ...d.viviendas]));
+        setRes((prev) => (cursor && prev ? { ...d, total: prev.total } : d));
+        setResItems((prev) => (cursor ? [...prev, ...d.viviendas] : d.viviendas));
       })
       .catch(() => setRes((prev) => (prev ? { ...prev, hayMas: false } : prev)))
       .finally(() => setResLoading(false));
@@ -471,12 +485,13 @@ export function ViviendasPage() {
         if (d.error) throw new Error(d.error);
         setRec(d);
         setRecItems(d.viviendas || []);
-        const lim: [number, number] = [d.minimo, d.techo];
+        const lim: [number, number] = [d.minimo, BUSCAR_MAX];
+        const inicial: [number, number] = [d.minimo, Math.min(d.techo, BUSCAR_MAX)];
         setBounds(lim);
-        setPrecio(lim);
+        setPrecio(inicial);
         const init: Filtros = { ciudad: d.ciudad, hab: '', tipo: '', m2: '' };
         setF(init);
-        runSearch(searchQuery(init, lim, lim, b));
+        runSearch(searchQuery(init, inicial, lim, b));
       })
       .catch(() => setFailed(true))
       .finally(() => setRecLoading(false));
@@ -602,8 +617,7 @@ export function ViviendasPage() {
               <div style={{ display: 'grid', gap: 6 }}>
                 <h3 id="t-buscar" style={TITLE}>Busca más viviendas</h3>
                 <p style={LEAD}>
-                  Ajusta los filtros para ver otras opciones. Te mostramos los anuncios más recientes, siempre dentro de tu
-                  presupuesto.
+                  Ajusta los filtros para ver otras opciones. Te mostramos primero los anuncios más recientes.
                 </p>
               </div>
             )}
@@ -654,6 +668,12 @@ export function ViviendasPage() {
               {aviso && <p role="alert" style={{ margin: 0, color: C.text, fontSize: 14, fontWeight: 600 }}>{aviso}</p>}
             </form>
 
+            {res && res.total > 0 && (
+              <p style={{ margin: 0, font: `700 18px/1.3 ${FONT_STACK}`, color: C.ink, fontVariantNumeric: 'tabular-nums' }}>
+                {res.total.toLocaleString('es-ES', { useGrouping: true })} {res.total === 1 ? 'vivienda' : 'viviendas'} en {res.ciudad}
+              </p>
+            )}
+
             {resLoading && visibles.length === 0 ? (
               <div style={GRID}><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
             ) : visibles.length > 0 ? (
@@ -666,7 +686,7 @@ export function ViviendasPage() {
 
             {res?.hayMas && visibles.length > 0 && searched && (
               <div>
-                <Button variant="secondary" size="md" onClick={() => runSearch(searched, res.nextOffset)}>
+                <Button variant="secondary" size="md" onClick={() => runSearch(searched, res.cursor || '')}>
                   {resLoading ? 'Cargando…' : 'Cargar más'}
                 </Button>
               </div>
