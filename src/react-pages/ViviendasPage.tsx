@@ -314,6 +314,99 @@ const INPUT: CSSProperties = {
   background: C.white, padding: '0 14px', font: `500 15px/1 ${FONT_STACK}`, color: C.text,
 };
 
+type Sugerencia = { nombre: string; region: string };
+
+function CityInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [items, setItems] = useState<Sugerencia[]>([]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const timer = useRef<number | undefined>(undefined);
+  const lastQ = useRef('');
+
+  const pedir = (texto: string) => {
+    window.clearTimeout(timer.current);
+    const t = texto.trim();
+    if (t.length < 2) { setItems([]); setOpen(false); return; }
+    timer.current = window.setTimeout(() => {
+      lastQ.current = t;
+      fetch(`${API}?sugerir=${encodeURIComponent(t)}`)
+        .then((r) => r.json())
+        .then((d: { sugerencias?: Sugerencia[] }) => {
+          if (lastQ.current !== t) return;
+          setItems(d.sugerencias || []);
+          setActive(-1);
+          setOpen((d.sugerencias || []).length > 0);
+        })
+        .catch(() => setOpen(false));
+    }, 180);
+  };
+
+  const elegir = (sug: Sugerencia) => {
+    onChange(sug.nombre);
+    setOpen(false);
+    setItems([]);
+  };
+
+  return (
+    <div style={{ position: 'relative', minWidth: 0 }}>
+      <input
+        id="f-ciudad"
+        style={INPUT}
+        value={value}
+        placeholder="Ej. Zaragoza"
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls="f-ciudad-lista"
+        aria-autocomplete="list"
+        aria-activedescendant={active >= 0 ? `f-ciudad-op-${active}` : undefined}
+        onChange={(e) => { onChange(e.target.value); pedir(e.target.value); }}
+        onFocus={() => { if (items.length) setOpen(true); }}
+        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        onKeyDown={(e) => {
+          if (!open || !items.length) return;
+          if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => (a + 1) % items.length); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => (a <= 0 ? items.length - 1 : a - 1)); }
+          else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); elegir(items[active]); }
+          else if (e.key === 'Escape') setOpen(false);
+        }}
+      />
+      {open && (
+        <ul
+          id="f-ciudad-lista"
+          role="listbox"
+          style={{
+            position: 'absolute', zIndex: 20, top: 'calc(100% + 6px)', left: 0, right: 0, margin: 0, padding: 6,
+            listStyle: 'none', background: C.white, border: `1px solid ${C.line}`, borderRadius: 14,
+            boxShadow: '0 12px 32px rgba(10,11,13,0.12)', maxHeight: 320, overflowY: 'auto',
+          }}
+        >
+          {items.map((it, i) => (
+            <li
+              key={`${it.nombre}-${it.region}`}
+              id={`f-ciudad-op-${i}`}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => { e.preventDefault(); elegir(it); }}
+              onMouseEnter={() => setActive(i)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                background: i === active ? 'rgba(61,139,247,0.08)' : 'transparent',
+              }}
+            >
+              <MapPin size={16} color={C.blue} />
+              <span style={{ display: 'grid', gap: 2, minWidth: 0 }}>
+                <span style={{ font: `600 15px/1.2 ${FONT_STACK}`, color: C.ink }}>{it.nombre}</span>
+                <span style={{ fontSize: 12, color: C.muted }}>{it.region}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function ViviendasPage() {
   const [ready, setReady] = useState(false);
   const [libre, setLibre] = useState(false);
@@ -425,8 +518,9 @@ export function ViviendasPage() {
                 Busca tu vivienda
               </h1>
               <p style={LEAD}>
-                Encuentra viviendas en venta entre {euros(LIBRE_MIN)} y {euros(LIBRE_MAX)} en la ciudad que elijas. Te mostramos
-                los anuncios más recientes y puedes contactar directamente con cada anunciante.
+                Encuentra tu vivienda en la zona que elijas.
+                <br />
+                Te mostramos los anuncios más recientes y puedes contactar directamente con cada anunciante.
               </p>
             </>
           ) : (
@@ -524,10 +618,7 @@ export function ViviendasPage() {
                 }}
               >
                 <Field label="Ciudad" htmlFor="f-ciudad">
-                  <input
-                    id="f-ciudad" style={INPUT} value={f.ciudad} onChange={set('ciudad')} placeholder="Ej. Barcelona"
-                    autoComplete="address-level2"
-                  />
+                  <CityInput value={f.ciudad} onChange={(v) => setF((p) => ({ ...p, ciudad: v }))} />
                 </Field>
                 <Field label="Habitaciones" htmlFor="f-hab">
                   <select id="f-hab" style={INPUT} value={f.hab} onChange={set('hab')}>
