@@ -1,13 +1,19 @@
 import { CSSProperties, FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
-import { BedDouble, ChevronLeft, ChevronRight, MapPin, MessageCircle, Phone, Ruler, Search } from 'lucide-react';
+import {
+  BedDouble, ChevronLeft, ChevronRight, ExternalLink, MapPin, MessageCircle, Phone, Ruler, Search,
+} from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { Eyebrow } from '../ui/Eyebrow';
 import { FONT_STACK } from '../ui/fontStack';
 
-// Recomendaciones de vivienda para leads (enlace enviado por WhatsApp vía Spoki) + búsqueda con filtros.
-// Entrada: /viviendas/?i=<enlace de búsqueda Idealista del CRM>  o  ?ciudad=...&max=...
+// /viviendas/
+//  - Con enlace del lead (?i=<búsqueda Idealista del CRM> o ?ciudad=&max=): recomendaciones + búsqueda con su tope.
+//  - Sin enlace: solo búsqueda, rango fijo 70.000-210.000 € (decisión 13/10/2026).
 const API = 'https://tnzgpzablwfptagfbnvb.supabase.co/functions/v1/viviendas-recomendadas';
+const LIBRE_MIN = 70000;
+const LIBRE_MAX = 210000;
+const STEP = 5000;
 
 const C = {
   blue: '#3D8BF7',
@@ -48,13 +54,76 @@ type Respuesta = {
   error?: string;
 };
 
-type Filtros = { ciudad: string; pmin: string; pmax: string; hab: string; tipo: string; m2: string };
+type Filtros = { ciudad: string; hab: string; tipo: string; m2: string };
 
 const euros = (n: number) => `${Math.round(n).toLocaleString('es-ES', { useGrouping: true })} €`;
+const WRAP: CSSProperties = { maxWidth: 1320, margin: '0 auto', padding: '0 24px' };
 const GRID: CSSProperties = {
-  display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+  display: 'grid', gap: 24, gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
 };
-const TITLE: CSSProperties = { margin: 0, font: `700 24px/1.2 ${FONT_STACK}`, letterSpacing: '-0.02em', color: C.ink };
+const TITLE: CSSProperties = { margin: 0, font: `700 26px/1.2 ${FONT_STACK}`, letterSpacing: '-0.02em', color: C.ink };
+const LEAD: CSSProperties = { margin: 0, color: C.muted, fontSize: 17, lineHeight: 1.6 };
+
+const RANGE_CSS = `
+.thp-h1 { font-size: clamp(32px, 5.5vw, 52px) !important; }
+.thp-range { position: relative; height: 32px; }
+.thp-range input[type=range] {
+  position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 32px; margin: 0;
+  background: none; pointer-events: none; -webkit-appearance: none; appearance: none;
+}
+.thp-range input[type=range]::-webkit-slider-runnable-track { background: none; height: 32px; }
+.thp-range input[type=range]::-moz-range-track { background: none; }
+.thp-range input[type=range]::-webkit-slider-thumb {
+  pointer-events: auto; -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin-top: 3px;
+  border-radius: 9999px; background: #fff; border: 2px solid ${C.blue}; box-shadow: 0 2px 6px rgba(10,11,13,0.18); cursor: grab;
+}
+.thp-range input[type=range]::-moz-range-thumb {
+  pointer-events: auto; width: 22px; height: 22px; border-radius: 9999px; background: #fff;
+  border: 2px solid ${C.blue}; box-shadow: 0 2px 6px rgba(10,11,13,0.18); cursor: grab;
+}
+.thp-range input[type=range]:focus-visible::-webkit-slider-thumb { outline: 3px solid rgba(61,139,247,0.35); }
+.thp-range input[type=range]:focus-visible::-moz-range-thumb { outline: 3px solid rgba(61,139,247,0.35); }
+`;
+
+function PriceRange({
+  min, max, value, onChange,
+}: { min: number; max: number; value: [number, number]; onChange: (v: [number, number]) => void }) {
+  const [lo, hi] = value;
+  const pct = (n: number) => ((n - min) / Math.max(1, max - min)) * 100;
+  return (
+    <div style={{ display: 'grid', gap: 10, minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <span style={{ font: `600 13px/1 ${FONT_STACK}`, color: C.text }}>Precio</span>
+        <span style={{ font: `700 15px/1 ${FONT_STACK}`, color: C.ink, fontVariantNumeric: 'tabular-nums' }}>
+          {euros(lo)} – {euros(hi)}
+        </span>
+      </div>
+      <div className="thp-range">
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 14, height: 4, borderRadius: 9999, background: C.line }} />
+        <div
+          style={{
+            position: 'absolute', top: 14, height: 4, borderRadius: 9999, background: C.blue,
+            left: `${pct(lo)}%`, right: `${100 - pct(hi)}%`,
+          }}
+        />
+        <input
+          id="f-pmin" type="range" aria-label="Precio mínimo" min={min} max={max} step={STEP} value={lo}
+          style={{ zIndex: pct(lo) > 50 ? 3 : 1 }}
+          onChange={(e) => onChange([Math.min(Number(e.target.value), hi - STEP), hi])}
+        />
+        <input
+          id="f-pmax" type="range" aria-label="Precio máximo" min={min} max={max} step={STEP} value={hi}
+          style={{ zIndex: 2 }}
+          onChange={(e) => onChange([lo, Math.max(Number(e.target.value), lo + STEP)])}
+        />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: C.muted, fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+        <span>{euros(min)}</span>
+        <span>{euros(max)}</span>
+      </div>
+    </div>
+  );
+}
 
 function Gallery({ fotos, titulo }: { fotos: string[]; titulo: string }) {
   const track = useRef<HTMLDivElement>(null);
@@ -119,6 +188,10 @@ function Gallery({ fotos, titulo }: { fotos: string[]; titulo: string }) {
 
 function Card({ v, destacada = false }: { v: Vivienda; destacada?: boolean }) {
   const wa = v.contacto.tipo === 'whatsapp';
+  const btn: CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none',
+    borderRadius: 9999, padding: '14px 18px', font: `700 15px/1 ${FONT_STACK}`, letterSpacing: '-0.01em',
+  };
   return (
     <article
       style={{
@@ -185,19 +258,23 @@ function Card({ v, destacada = false }: { v: Vivienda; destacada?: boolean }) {
             ))}
           </div>
         )}
-        <div style={{ marginTop: 'auto', display: 'grid', gap: 8 }}>
+        <div style={{ marginTop: 'auto', display: 'grid', gap: 8, paddingTop: 4 }}>
           <a
             href={v.contacto.url}
             target={wa ? '_blank' : undefined}
             rel={wa ? 'noopener' : undefined}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: C.blue, color: C.white, textDecoration: 'none', borderRadius: 9999,
-              padding: '15px 20px', font: `700 16px/1 ${FONT_STACK}`, letterSpacing: '-0.01em',
-            }}
+            style={{ ...btn, background: C.blue, color: C.white }}
           >
             {wa ? <MessageCircle size={18} /> : <Phone size={18} />}
             {wa ? 'Contactar por WhatsApp' : 'Llamar'}
+          </a>
+          <a
+            href={v.url}
+            target="_blank"
+            rel="noopener"
+            style={{ ...btn, color: C.blue, boxShadow: `inset 0 0 0 1.5px ${C.blue}` }}
+          >
+            Ver más <ExternalLink size={16} />
           </a>
           <p style={{ margin: 0, textAlign: 'center', color: C.muted, fontSize: 13, userSelect: 'all' as const }}>
             {v.anunciante ? `${v.anunciante} · ` : ''}{v.contacto.numero}
@@ -238,33 +315,40 @@ const INPUT: CSSProperties = {
 };
 
 export function ViviendasPage() {
-  const [base, setBase] = useState<URLSearchParams | null>(null);
+  const [ready, setReady] = useState(false);
+  const [libre, setLibre] = useState(false);
+  const [base, setBase] = useState<URLSearchParams>(new URLSearchParams());
   const [rec, setRec] = useState<Respuesta | null>(null);
   const [recItems, setRecItems] = useState<Vivienda[]>([]);
-  const [recLoading, setRecLoading] = useState(true);
+  const [recLoading, setRecLoading] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const [f, setF] = useState<Filtros>({ ciudad: '', pmin: '', pmax: '', hab: '', tipo: '', m2: '' });
+  const [f, setF] = useState<Filtros>({ ciudad: '', hab: '', tipo: '', m2: '' });
+  const [bounds, setBounds] = useState<[number, number]>([LIBRE_MIN, LIBRE_MAX]);
+  const [precio, setPrecio] = useState<[number, number]>([LIBRE_MIN, LIBRE_MAX]);
   const [res, setRes] = useState<Respuesta | null>(null);
   const [resItems, setResItems] = useState<Vivienda[]>([]);
   const [resLoading, setResLoading] = useState(false);
   const [searched, setSearched] = useState<URLSearchParams | null>(null);
+  const [aviso, setAviso] = useState('');
 
   const recSlugs = new Set(recItems.map((v) => v.slug));
 
-  const searchQuery = (filtros: Filtros, b: URLSearchParams) => {
+  const searchQuery = (filtros: Filtros, rango: [number, number], lim: [number, number], b: URLSearchParams) => {
     const q = new URLSearchParams(b);
     q.set('modo', 'buscar');
     (Object.keys(filtros) as (keyof Filtros)[]).forEach((k) => {
       const val = filtros[k].trim();
       if (val) q.set(k, val);
     });
+    if (rango[0] > lim[0]) q.set('pmin', String(rango[0]));
+    if (rango[1] < lim[1]) q.set('pmax', String(rango[1]));
     return q;
   };
 
   const runSearch = (q: URLSearchParams, offset = 0) => {
     setResLoading(true);
-    if (offset === 0) { setResItems([]); setSearched(q); }
+    if (offset === 0) { setResItems([]); setSearched(q); setRes(null); }
     fetch(`${API}?${q.toString()}&offset=${offset}&count=6`)
       .then((r) => r.json())
       .then((d: Respuesta) => {
@@ -280,21 +364,26 @@ export function ViviendasPage() {
     const sp = new URLSearchParams(window.location.search);
     const b = new URLSearchParams();
     if (sp.get('i')) b.set('i', sp.get('i') as string);
-    else {
+    else if (sp.get('max')) {
+      b.set('max', sp.get('max') as string);
       if (sp.get('ciudad')) b.set('ciudad', sp.get('ciudad') as string);
-      if (sp.get('max')) b.set('max', sp.get('max') as string);
     }
-    if (!b.toString()) { setRecLoading(false); setFailed(true); return; }
+    setReady(true);
+    if (!b.toString()) { setLibre(true); return; }
     setBase(b);
+    setRecLoading(true);
     fetch(`${API}?${b.toString()}&count=3`)
       .then((r) => r.json())
       .then((d: Respuesta) => {
         if (d.error) throw new Error(d.error);
         setRec(d);
         setRecItems(d.viviendas || []);
-        const init: Filtros = { ciudad: d.ciudad, pmin: '', pmax: '', hab: '', tipo: '', m2: '' };
+        const lim: [number, number] = [d.minimo, d.techo];
+        setBounds(lim);
+        setPrecio(lim);
+        const init: Filtros = { ciudad: d.ciudad, hab: '', tipo: '', m2: '' };
         setF(init);
-        runSearch(searchQuery(init, b));
+        runSearch(searchQuery(init, lim, lim, b));
       })
       .catch(() => setFailed(true))
       .finally(() => setRecLoading(false));
@@ -302,69 +391,93 @@ export function ViviendasPage() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!base) return;
-    runSearch(searchQuery(f, base));
+    if (!f.ciudad.trim()) { setAviso('Escribe la ciudad donde quieres buscar.'); return; }
+    setAviso('');
+    runSearch(searchQuery(f, precio, bounds, base));
   };
 
   const ciudad = rec?.ciudad;
-  const techo = rec?.techo || rec?.max || 0;
+  const techo = rec?.techo || 0;
   const visibles = resItems.filter((v) => !recSlugs.has(v.slug));
   const set = (k: keyof Filtros) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value }));
+  const showSearch = ready && !failed && (libre || !!rec);
 
   return (
     <div id="top" style={{ minHeight: '100vh', background: C.white, color: C.text, fontFamily: FONT_STACK }}>
+      <style>{RANGE_CSS}</style>
       <header style={{ borderBottom: `1px solid ${C.line}` }}>
-        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '16px 20px' }}>
+        <div style={{ ...WRAP, paddingTop: 16, paddingBottom: 16 }}>
           <Logo />
         </div>
       </header>
 
-      <main style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
-        <section style={{ padding: '40px 0 28px', display: 'grid', gap: 12 }}>
-          <Eyebrow color={C.blue}>Selección de Tu Hogar Posible</Eyebrow>
-          <h1
-            style={{
-              margin: 0, font: `800 clamp(30px, 6vw, 46px)/1.05 ${FONT_STACK}`, letterSpacing: '-0.03em',
-              color: C.ink, textWrap: 'balance',
-            } as CSSProperties}
-          >
-            {ciudad ? `Viviendas para ti en ${ciudad}` : 'Viviendas para ti'}
-          </h1>
-          <p style={{ margin: 0, color: C.muted, fontSize: 17, lineHeight: 1.55, maxWidth: 640 }}>
-            Estas son las viviendas que te recomendamos según tu presupuesto. Si quieres ver otras opciones,
-            más abajo puedes buscar entre todas las viviendas disponibles con tus propios filtros.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 4 }}>
-            {techo ? (
-              <span
+      <main style={WRAP}>
+        <section style={{ padding: '44px 0 32px', display: 'grid', gap: 14 }}>
+          {libre ? (
+            <>
+              <Eyebrow color={C.blue}>Tu Hogar Posible</Eyebrow>
+              <h1
+                className="thp-h1"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(61,139,247,0.08)',
-                  borderRadius: 9999, padding: '11px 18px', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+                  margin: 0, font: `800 clamp(32px, 5.5vw, 52px)/1.05 ${FONT_STACK}`, letterSpacing: '-0.03em', color: C.ink,
                 }}
               >
-                Tu presupuesto: hasta <b style={{ color: C.blue }}>{euros(techo)}</b>
-              </span>
-            ) : null}
-            {!failed && (
-              <a
-                href="#buscar"
+                Busca tu vivienda
+              </h1>
+              <p style={LEAD}>
+                Encuentra viviendas en venta entre {euros(LIBRE_MIN)} y {euros(LIBRE_MAX)} en la ciudad que elijas. Te mostramos
+                los anuncios más recientes y puedes contactar directamente con cada anunciante.
+              </p>
+            </>
+          ) : (
+            <>
+              <Eyebrow color={C.blue}>Selección de Tu Hogar Posible</Eyebrow>
+              <h1
+                className="thp-h1"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, color: C.blue, textDecoration: 'none',
-                  boxShadow: `inset 0 0 0 1.5px ${C.blue}`, borderRadius: 9999, padding: '11px 18px', fontWeight: 700,
+                  margin: 0, font: `800 clamp(32px, 5.5vw, 52px)/1.05 ${FONT_STACK}`, letterSpacing: '-0.03em', color: C.ink,
                 }}
               >
-                <Search size={16} /> Buscar más viviendas
-              </a>
-            )}
-          </div>
+                {ciudad ? `Viviendas para ti en ${ciudad}` : 'Viviendas para ti'}
+              </h1>
+              <p style={LEAD}>
+                Hemos analizado tu caso y hemos hecho una búsqueda personalizada de viviendas que encajan con tu capacidad de
+                compra. Más abajo también puedes buscar otras opciones con tus propios filtros.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 4 }}>
+                {techo ? (
+                  <span
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(61,139,247,0.08)',
+                      borderRadius: 9999, padding: '11px 18px', fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    Tu presupuesto: hasta <b style={{ color: C.blue }}>{euros(techo)}</b>
+                  </span>
+                ) : null}
+                {!failed && (
+                  <a
+                    href="#buscar"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8, color: C.blue, textDecoration: 'none',
+                      boxShadow: `inset 0 0 0 1.5px ${C.blue}`, borderRadius: 9999, padding: '11px 18px', fontWeight: 700,
+                    }}
+                  >
+                    <Search size={16} /> Buscar más viviendas
+                  </a>
+                )}
+              </div>
+            </>
+          )}
         </section>
 
-        {(recLoading || recItems.length > 0) && (
-          <section aria-labelledby="t-rec" style={{ display: 'grid', gap: 16, paddingBottom: 48 }}>
-            <div style={{ display: 'grid', gap: 4 }}>
-              <h3 id="t-rec" style={TITLE}>Nuestras recomendaciones</h3>
-              <p style={{ margin: 0, color: C.muted, fontSize: 15 }}>
-                Las viviendas que mejor encajan con tu presupuesto.
+        {!libre && (recLoading || recItems.length > 0) && (
+          <section aria-labelledby="t-rec" style={{ display: 'grid', gap: 18, paddingBottom: 52 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <h3 id="t-rec" style={TITLE}>Tu búsqueda personalizada</h3>
+              <p style={LEAD}>
+                Hemos estudiado tu situación (ingresos, ahorros y capacidad de financiación) y hemos seleccionado las viviendas
+                que mejor aprovechan tu presupuesto. Son nuestras recomendaciones para tu caso.
               </p>
             </div>
             {recLoading ? (
@@ -384,78 +497,79 @@ export function ViviendasPage() {
           </section>
         )}
 
-        {!failed && rec && (
+        {showSearch && (
           <section
             id="buscar"
-            aria-labelledby="t-buscar"
-            style={{ display: 'grid', gap: 20, paddingBottom: 56, scrollMarginTop: 16 }}
+            aria-labelledby={libre ? undefined : 't-buscar'}
+            aria-label={libre ? 'Buscar viviendas' : undefined}
+            style={{ display: 'grid', gap: 20, paddingBottom: 60, scrollMarginTop: 16 }}
           >
-            <div style={{ display: 'grid', gap: 4 }}>
-              <h3 id="t-buscar" style={TITLE}>Busca más viviendas</h3>
-              <p style={{ margin: 0, color: C.muted, fontSize: 15 }}>
-                Te mostramos los anuncios más recientes, siempre dentro de tu presupuesto.
-              </p>
-            </div>
+            {!libre && (
+              <div style={{ display: 'grid', gap: 6 }}>
+                <h3 id="t-buscar" style={TITLE}>Busca más viviendas</h3>
+                <p style={LEAD}>
+                  Ajusta los filtros para ver otras opciones. Te mostramos los anuncios más recientes, siempre dentro de tu
+                  presupuesto.
+                </p>
+              </div>
+            )}
 
             <form
               onSubmit={onSubmit}
-              style={{
-                background: C.surface, borderRadius: 24, padding: 20, display: 'grid', gap: 14,
-                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', alignItems: 'end',
-              }}
+              style={{ background: C.surface, borderRadius: 24, padding: 24, display: 'grid', gap: 20 }}
             >
-              <Field label="Ciudad" htmlFor="f-ciudad">
-                <input id="f-ciudad" style={INPUT} value={f.ciudad} onChange={set('ciudad')} placeholder="Ej. Barcelona" />
-              </Field>
-              <Field label="Precio mínimo" htmlFor="f-pmin">
-                <input
-                  id="f-pmin" style={INPUT} type="number" inputMode="numeric" min={rec.minimo} max={techo} step={1000}
-                  value={f.pmin} onChange={set('pmin')} placeholder={euros(rec.minimo)}
-                />
-              </Field>
-              <Field label="Precio máximo" htmlFor="f-pmax">
-                <input
-                  id="f-pmax" style={INPUT} type="number" inputMode="numeric" min={rec.minimo} max={techo} step={1000}
-                  value={f.pmax} onChange={set('pmax')} placeholder={euros(techo)}
-                />
-              </Field>
-              <Field label="Habitaciones" htmlFor="f-hab">
-                <select id="f-hab" style={INPUT} value={f.hab} onChange={set('hab')}>
-                  <option value="">Cualquiera</option>
-                  <option value="1">1 o más</option>
-                  <option value="2">2 o más</option>
-                  <option value="3">3 o más</option>
-                  <option value="4">4 o más</option>
-                </select>
-              </Field>
-              <Field label="Tipo" htmlFor="f-tipo">
-                <select id="f-tipo" style={INPUT} value={f.tipo} onChange={set('tipo')}>
-                  <option value="">Todos</option>
-                  <option value="piso">Piso</option>
-                  <option value="casa">Casa</option>
-                </select>
-              </Field>
-              <Field label="Superficie mínima" htmlFor="f-m2">
-                <input
-                  id="f-m2" style={INPUT} type="number" inputMode="numeric" min={0} step={5}
-                  value={f.m2} onChange={set('m2')} placeholder="m²"
-                />
-              </Field>
-              <Button type="submit" variant="primary" size="md" fullWidth style={{ height: 46, padding: '0 20px' }}>
-                <Search size={18} /> Buscar
-              </Button>
+              <div
+                style={{
+                  display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+                }}
+              >
+                <Field label="Ciudad" htmlFor="f-ciudad">
+                  <input
+                    id="f-ciudad" style={INPUT} value={f.ciudad} onChange={set('ciudad')} placeholder="Ej. Barcelona"
+                    autoComplete="address-level2"
+                  />
+                </Field>
+                <Field label="Habitaciones" htmlFor="f-hab">
+                  <select id="f-hab" style={INPUT} value={f.hab} onChange={set('hab')}>
+                    <option value="">Cualquiera</option>
+                    <option value="1">1 o más</option>
+                    <option value="2">2 o más</option>
+                    <option value="3">3 o más</option>
+                    <option value="4">4 o más</option>
+                  </select>
+                </Field>
+                <Field label="Tipo" htmlFor="f-tipo">
+                  <select id="f-tipo" style={INPUT} value={f.tipo} onChange={set('tipo')}>
+                    <option value="">Todos</option>
+                    <option value="piso">Piso</option>
+                    <option value="casa">Casa</option>
+                  </select>
+                </Field>
+                <Field label="Superficie mínima" htmlFor="f-m2">
+                  <input
+                    id="f-m2" style={INPUT} type="number" inputMode="numeric" min={0} step={5}
+                    value={f.m2} onChange={set('m2')} placeholder="m²"
+                  />
+                </Field>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end' }}>
+                <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+                  <PriceRange min={bounds[0]} max={bounds[1]} value={precio} onChange={setPrecio} />
+                </div>
+                <Button type="submit" variant="primary" size="md" style={{ height: 48, padding: '0 32px', flex: '0 0 auto' }}>
+                  <Search size={18} /> Buscar
+                </Button>
+              </div>
+              {aviso && <p role="alert" style={{ margin: 0, color: C.text, fontSize: 14, fontWeight: 600 }}>{aviso}</p>}
             </form>
-            <p style={{ margin: '-8px 0 0', color: C.muted, fontSize: 13 }}>
-              El precio máximo no puede superar tu presupuesto de {euros(techo)}.
-            </p>
 
             {resLoading && visibles.length === 0 ? (
               <div style={GRID}><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
             ) : visibles.length > 0 ? (
               <div style={GRID}>{visibles.map((v) => <Card key={v.slug} v={v} />)}</div>
-            ) : searched ? (
+            ) : searched && res ? (
               <p style={{ margin: 0, color: C.text, fontSize: 16 }}>
-                No hay viviendas con estos filtros. Prueba a cambiar la ciudad o a quitar algún filtro.
+                No hay viviendas con estos filtros. Prueba a cambiar la ciudad, ampliar el precio o quitar algún filtro.
               </p>
             ) : null}
 
@@ -471,7 +585,7 @@ export function ViviendasPage() {
       </main>
 
       <footer style={{ borderTop: `1px solid ${C.line}` }}>
-        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '22px 20px', display: 'grid', gap: 6, fontSize: 13, color: C.muted }}>
+        <div style={{ ...WRAP, paddingTop: 22, paddingBottom: 22, display: 'grid', gap: 6, fontSize: 13, color: C.muted }}>
           <span>
             Anuncios publicados en Voxhouses. El contacto es directo con el anunciante. Precio y disponibilidad sujetos a confirmación.
           </span>
