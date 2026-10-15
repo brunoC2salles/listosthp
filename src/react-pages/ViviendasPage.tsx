@@ -1,6 +1,6 @@
 import { CSSProperties, FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import {
-  BedDouble, ChevronLeft, ChevronRight, ExternalLink, MapPin, MessageCircle, Phone, Ruler, Search,
+  BedDouble, ChevronLeft, ChevronRight, ExternalLink, MapPin, MessageCircle, Phone, Ruler, Search, Wallet,
 } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
@@ -69,6 +69,7 @@ const LEAD: CSSProperties = { margin: 0, color: C.muted, fontSize: 17, lineHeigh
 
 const RANGE_CSS = `
 .thp-h1 { font-size: clamp(32px, 5.5vw, 52px) !important; }
+.thp-h2 { font-size: 26px !important; }
 .thp-range { position: relative; height: 32px; }
 .thp-range input[type=range] {
   position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 32px; margin: 0;
@@ -421,6 +422,27 @@ function CityInput({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
+const INFO = [
+  {
+    Icon: Search,
+    titulo: 'Busca por ciudad y presupuesto',
+    texto: 'Filtra por ciudad, precio, habitaciones, tipo de vivienda y superficie mínima. Te mostramos primero los anuncios más recientes.',
+    enlace: null,
+  },
+  {
+    Icon: MessageCircle,
+    titulo: 'Contacta con el anunciante',
+    texto: 'Los anuncios están publicados en Voxhouses y el contacto es directo con el anunciante, por WhatsApp o por teléfono. Precio y disponibilidad sujetos a confirmación.',
+    enlace: null,
+  },
+  {
+    Icon: Wallet,
+    titulo: 'Financiación hasta el 100%',
+    texto: 'En Tu Hogar Posible te ayudamos a conseguir financiación hasta el 100% para comprar tu vivienda.',
+    enlace: { href: '/#simulador', texto: 'Calcula tu financiación' },
+  },
+];
+
 export function ViviendasPage() {
   const [ready, setReady] = useState(false);
   const [libre, setLibre] = useState(false);
@@ -521,7 +543,7 @@ export function ViviendasPage() {
 
       <main style={WRAP}>
         <section style={{ padding: '44px 0 32px', display: 'grid', gap: 14, minHeight: 160 }}>
-          {!ready ? null : libre ? (
+          {!ready || libre ? (
             <>
               <Eyebrow color={C.blue}>Tu Hogar Posible</Eyebrow>
               <h1
@@ -693,6 +715,34 @@ export function ViviendasPage() {
             )}
           </section>
         )}
+
+        <section aria-labelledby="t-como" style={{ display: 'grid', gap: 20, paddingBottom: 64 }}>
+          <h2 id="t-como" className="thp-h2" style={TITLE}>Cómo funciona</h2>
+          <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
+            {INFO.map(({ Icon, titulo, texto, enlace }) => (
+              <article
+                key={titulo}
+                style={{ background: C.surface, borderRadius: 24, padding: 24, display: 'grid', gap: 10, alignContent: 'start' }}
+              >
+                <span
+                  style={{
+                    width: 44, height: 44, borderRadius: 9999, background: 'rgba(61,139,247,0.12)',
+                    display: 'grid', placeItems: 'center',
+                  }}
+                >
+                  <Icon size={20} color={C.blue} />
+                </span>
+                <h3 style={{ margin: 0, font: `700 19px/1.25 ${FONT_STACK}`, letterSpacing: '-0.01em', color: C.ink }}>{titulo}</h3>
+                <p style={{ margin: 0, color: C.muted, fontSize: 15, lineHeight: 1.6 }}>{texto}</p>
+                {enlace && (
+                  <a href={enlace.href} style={{ color: C.blue, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
+                    {enlace.texto}
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
       </main>
 
       <footer style={{ borderTop: `1px solid ${C.line}` }}>
