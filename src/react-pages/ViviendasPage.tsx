@@ -501,7 +501,9 @@ export function ViviendasPage() {
     if (!b.toString()) { setLibre(true); return; }
     setBase(b);
     setRecLoading(true);
-    fetch(`${API}?${b.toString()}&count=3`)
+    // rec: conjunto de viviendas enviado en el seguimiento por WhatsApp (19/10/2026)
+    const rec = sp.get('rec');
+    fetch(`${API}?${b.toString()}&count=3${rec ? `&rec=${encodeURIComponent(rec)}` : ''}`)
       .then((r) => r.json())
       .then((d: Respuesta) => {
         if (d.error) throw new Error(d.error);
