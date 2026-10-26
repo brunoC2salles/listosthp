@@ -11,6 +11,7 @@ import { FONT_STACK } from '../ui/fontStack';
 //  - Con enlace del lead (?i=<búsqueda Idealista del CRM> o ?ciudad=&max=): recomendaciones + búsqueda con su tope.
 //  - Sin enlace: solo búsqueda, rango 70.000-250.000 € (decisión 13/10/2026).
 //  - Búsqueda: todos los anuncios del Voxhouses con los filtros elegidos, paginando con cursor.
+//  - Ciudad: obligatorio elegirla en la lista (envía su código INE); precio escrito en Desde/Hasta o con el slider (26/10/2026).
 const API = 'https://tnzgpzablwfptagfbnvb.supabase.co/functions/v1/viviendas-recomendadas';
 const LIBRE_MIN = 70000;
 const LIBRE_MAX = 250000;
@@ -46,6 +47,7 @@ type Vivienda = {
 
 type Respuesta = {
   ciudad: string;
+  cod?: string | null;
   max: number;
   techo: number;
   minimo: number;
@@ -89,18 +91,73 @@ const RANGE_CSS = `
 .thp-range input[type=range]:focus-visible::-moz-range-thumb { outline: 3px solid rgba(61,139,247,0.35); }
 `;
 
+// Precio escrito o del slider, dentro de los límites y con el mínimo por debajo del máximo (26/10/2026)
+function ajustarPrecio(v: [number, number], min: number, max: number): [number, number] {
+  const c = (n: number) => Math.min(max, Math.max(min, Math.round(n) || 0));
+  const a = c(v[0]), b = c(v[1]);
+  return a <= b ? [a, b] : [b, a];
+}
+
+function MoneyInput({
+  id, label, value, onChange, onBlur,
+}: { id: string; label: string; value: number; onChange: (n: number) => void; onBlur: () => void }) {
+  const [focus, setFocus] = useState(false);
+  const [raw, setRaw] = useState('');
+  const recienFoco = useRef(false);
+  const ref = useRef<HTMLInputElement>(null);
+  // al entrar en el campo se selecciona el valor (después de cambiar al formato sin puntos) para escribir encima
+  useEffect(() => { if (focus) ref.current?.select(); }, [focus]);
+  return (
+    <label htmlFor={id} style={{ display: 'grid', gap: 6, minWidth: 0 }}>
+      <span style={{ fontSize: 12, fontWeight: 500, color: C.muted }}>{label}</span>
+      <span style={{ position: 'relative', display: 'block', minWidth: 0 }}>
+        <input
+          id={id}
+          style={{ ...INPUT, paddingRight: 34, fontVariantNumeric: 'tabular-nums' }}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          value={focus ? raw : Math.round(value).toLocaleString('es-ES', { useGrouping: true })}
+          ref={ref}
+          onFocus={() => {
+            setFocus(true);
+            setRaw(String(Math.round(value)));
+            recienFoco.current = true;
+          }}
+          onMouseUp={(e) => {
+            // el clic que da el foco no debe quitar la selección: así se escribe encima del valor
+            if (recienFoco.current) { e.preventDefault(); recienFoco.current = false; }
+          }}
+          onChange={(e) => {
+            const d = e.target.value.replace(/\D/g, '').slice(0, 7);
+            setRaw(d);
+            if (d) onChange(Number(d));
+          }}
+          onBlur={() => { setFocus(false); onBlur(); }}
+        />
+        <span
+          aria-hidden="true"
+          style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: C.muted, pointerEvents: 'none' }}
+        >
+          €
+        </span>
+      </span>
+    </label>
+  );
+}
+
 function PriceRange({
   min, max, value, onChange,
 }: { min: number; max: number; value: [number, number]; onChange: (v: [number, number]) => void }) {
   const [lo, hi] = value;
-  const pct = (n: number) => ((n - min) / Math.max(1, max - min)) * 100;
+  const pct = (n: number) => Math.min(100, Math.max(0, ((n - min) / Math.max(1, max - min)) * 100));
+  const fijar = () => onChange(ajustarPrecio(value, min, max));
   return (
     <div style={{ display: 'grid', gap: 10, minWidth: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <span style={{ font: `600 13px/1 ${FONT_STACK}`, color: C.text }}>Precio</span>
-        <span style={{ font: `700 15px/1 ${FONT_STACK}`, color: C.ink, fontVariantNumeric: 'tabular-nums' }}>
-          {euros(lo)} – {euros(hi)}
-        </span>
+      <span style={{ font: `600 13px/1 ${FONT_STACK}`, color: C.text }}>Precio</span>
+      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+        <MoneyInput id="f-pdesde" label="Desde" value={lo} onChange={(n) => onChange([n, hi])} onBlur={fijar} />
+        <MoneyInput id="f-phasta" label="Hasta" value={hi} onChange={(n) => onChange([lo, n])} onBlur={fijar} />
       </div>
       <div className="thp-range">
         <div style={{ position: 'absolute', left: 0, right: 0, top: 14, height: 4, borderRadius: 9999, background: C.line }} />
@@ -329,9 +386,11 @@ const INPUT: CSSProperties = {
   background: C.white, padding: '0 14px', font: `500 15px/1 ${FONT_STACK}`, color: C.text,
 };
 
-type Sugerencia = { nombre: string; region: string };
+type Sugerencia = { nombre: string; region: string; cod: string };
 
-function CityInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function CityInput({
+  value, onChange, onSelect,
+}: { value: string; onChange: (v: string) => void; onSelect: (s: Sugerencia) => void }) {
   const [items, setItems] = useState<Sugerencia[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -357,7 +416,7 @@ function CityInput({ value, onChange }: { value: string; onChange: (v: string) =
   };
 
   const elegir = (sug: Sugerencia) => {
-    onChange(sug.nombre);
+    onSelect(sug);
     setOpen(false);
     setItems([]);
   };
@@ -382,7 +441,7 @@ function CityInput({ value, onChange }: { value: string; onChange: (v: string) =
           if (!open || !items.length) return;
           if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => (a + 1) % items.length); }
           else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => (a <= 0 ? items.length - 1 : a - 1)); }
-          else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); elegir(items[active]); }
+          else if (e.key === 'Enter') { e.preventDefault(); elegir(items[active >= 0 ? active : 0]); }
           else if (e.key === 'Escape') setOpen(false);
         }}
       />
@@ -398,7 +457,7 @@ function CityInput({ value, onChange }: { value: string; onChange: (v: string) =
         >
           {items.map((it, i) => (
             <li
-              key={`${it.nombre}-${it.region}`}
+              key={it.cod || `${it.nombre}-${it.region}`}
               id={`f-ciudad-op-${i}`}
               role="option"
               aria-selected={i === active}
@@ -453,6 +512,9 @@ export function ViviendasPage() {
   const [failed, setFailed] = useState(false);
 
   const [f, setF] = useState<Filtros>({ ciudad: '', hab: '', tipo: '', m2: '' });
+  // Ciudad elegida en la lista de sugerencias (código INE); escribir sin elegir no permite buscar (26/10/2026)
+  const [cod, setCod] = useState('');
+  const [ciudadOk, setCiudadOk] = useState(false);
   const [bounds, setBounds] = useState<[number, number]>([LIBRE_MIN, LIBRE_MAX]);
   const [precio, setPrecio] = useState<[number, number]>([LIBRE_MIN, LIBRE_MAX]);
   const [res, setRes] = useState<Respuesta | null>(null);
@@ -463,9 +525,10 @@ export function ViviendasPage() {
 
   const recSlugs = new Set(recItems.map((v) => v.slug));
 
-  const searchQuery = (filtros: Filtros, rango: [number, number], lim: [number, number], b: URLSearchParams) => {
+  const searchQuery = (filtros: Filtros, rango: [number, number], lim: [number, number], b: URLSearchParams, codigo: string) => {
     const q = new URLSearchParams(b);
     q.set('modo', 'buscar');
+    if (codigo) q.set('cod', codigo);
     (Object.keys(filtros) as (keyof Filtros)[]).forEach((k) => {
       const val = filtros[k].trim();
       if (val) q.set(k, val);
@@ -515,7 +578,9 @@ export function ViviendasPage() {
         setPrecio(inicial);
         const init: Filtros = { ciudad: d.ciudad, hab: '', tipo: '', m2: '' };
         setF(init);
-        runSearch(searchQuery(init, inicial, lim, b));
+        setCod(d.cod || '');
+        setCiudadOk(true);
+        runSearch(searchQuery(init, inicial, lim, b, d.cod || ''));
       })
       .catch(() => setFailed(true))
       .finally(() => setRecLoading(false));
@@ -524,8 +589,11 @@ export function ViviendasPage() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!f.ciudad.trim()) { setAviso('Escribe la ciudad donde quieres buscar.'); return; }
+    if (!ciudadOk) { setAviso('Elige la ciudad en la lista de sugerencias.'); return; }
     setAviso('');
-    runSearch(searchQuery(f, precio, bounds, base));
+    const rango = ajustarPrecio(precio, bounds[0], bounds[1]);
+    setPrecio(rango);
+    runSearch(searchQuery(f, rango, bounds, base, cod));
   };
 
   const ciudad = rec?.ciudad;
@@ -656,7 +724,16 @@ export function ViviendasPage() {
                 }}
               >
                 <Field label="Ciudad" htmlFor="f-ciudad">
-                  <CityInput value={f.ciudad} onChange={(v) => setF((p) => ({ ...p, ciudad: v }))} />
+                  <CityInput
+                    value={f.ciudad}
+                    onChange={(v) => { setF((p) => ({ ...p, ciudad: v })); setCod(''); setCiudadOk(false); }}
+                    onSelect={(sug) => {
+                      setF((p) => ({ ...p, ciudad: sug.nombre }));
+                      setCod(sug.cod || '');
+                      setCiudadOk(true);
+                      setAviso('');
+                    }}
+                  />
                 </Field>
                 <Field label="Habitaciones" htmlFor="f-hab">
                   <select id="f-hab" style={INPUT} value={f.hab} onChange={set('hab')}>
