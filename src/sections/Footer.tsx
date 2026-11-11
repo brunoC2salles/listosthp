@@ -31,7 +31,7 @@ export function Footer() {
           <div>
             <Logo />
             <p style={{ font: `400 14px/1.6 ${FONT_STACK}`, color: '#6B7280', margin: '20px 0 0', maxWidth: 320 }}>
-              Tu hipoteca posible. 100% financiada, sin entrada.
+              Tu hipoteca posible.
             </p>
           </div>
           {COLUMNS.map((c) => (

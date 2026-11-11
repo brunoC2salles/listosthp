@@ -34,10 +34,10 @@ export function LeadForm({ cta }: { cta: string }) {
             Cuéntanos tu situación.{' '}<span style={{ color: '#6FA9F9' }}>Nosotros te decimos cómo.</span>
           </h2>
           <p style={{ font: `400 17px/1.6 ${FONT_STACK}`, color: 'rgba(255,255,255,0.7)', margin: 0, maxWidth: 460 }}>
-            Te llamamos en menos de 24 h con un estudio gratuito y personalizado. Sin compromiso, sin afectar tu scoring.
+            Te llamamos en menos de 24 h con un estudio personalizado. Sin compromiso, sin afectar tu scoring.
           </p>
           <div style={{ marginTop: isMobile ? 32 : 40, display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {['Estudio gratuito y personalizado', 'Te acompañamos hasta las llaves'].map((t) => (
+            {['Estudio personalizado', 'Te acompañamos hasta las llaves'].map((t) => (
               <div key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 12, font: `500 15px ${FONT_STACK}`, color: 'rgba(255,255,255,0.85)' }}>
                 <span style={{ width: 22, height: 22, borderRadius: 9999, background: 'rgba(61,139,247,0.18)', color: '#6FA9F9', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Check size={12} />

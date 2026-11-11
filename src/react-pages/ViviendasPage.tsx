@@ -496,8 +496,8 @@ const INFO = [
   },
   {
     Icon: Wallet,
-    titulo: 'Financiación hasta el 100%',
-    texto: 'En Tu Hogar Posible te ayudamos a conseguir financiación hasta el 100% para comprar tu vivienda.',
+    titulo: 'Te ayudamos con tu hipoteca',
+    texto: 'En Tu Hogar Posible te ayudamos a conseguir la financiación para comprar tu vivienda.',
     enlace: { href: '/#simulador', texto: 'Calcula tu financiación' },
   },
 ];

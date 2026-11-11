@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Eyebrow } from '../ui/Eyebrow';
 import { Button } from '../ui/Button';
 import { ArrowRight } from '../ui/Icons';
@@ -43,10 +43,6 @@ export function Simulator({ onCTA }: { onCTA: () => void }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
               <Slider label="Valor del inmueble" value={price} min={60000} max={600000} step={5000} onChange={setPrice} fmt={fmtEUR} isMobile={isMobile} />
               <Slider label="Plazo" value={years} min={5} max={30} step={1} onChange={setYears} fmt={(v) => `${v} años`} isMobile={isMobile} />
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Pill>Sin entrada</Pill>
-                <Pill>100% financiado</Pill>
-              </div>
             </div>
           </div>
           <div style={{ background: 'linear-gradient(135deg, #6FA9F9 0%, #2C6FD4 100%)', borderRadius: 24, padding: isMobile ? 32 : 48, color: '#fff', position: 'relative', overflow: 'hidden' }}>
@@ -61,7 +57,7 @@ export function Simulator({ onCTA }: { onCTA: () => void }) {
               </div>
               <div style={{ marginTop: 32 }}>
                 <Button variant="inverse" size="lg" fullWidth onClick={onCTA}>
-                  Solicitar mi estudio gratis<ArrowRight size={16} />
+                  Solicitar mi estudio<ArrowRight size={16} />
                 </Button>
               </div>
             </div>
@@ -72,15 +68,6 @@ export function Simulator({ onCTA }: { onCTA: () => void }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function Pill({ children }: { children: ReactNode }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 9999, background: '#F5F7FA', color: '#1A1A1A', font: `600 12px/1 ${FONT_STACK}` }}>
-      <span style={{ width: 6, height: 6, borderRadius: 9999, background: '#3D8BF7' }} />
-      {children}
-    </span>
   );
 }
 

@@ -18,7 +18,7 @@ export function EmotionalSection() {
           <div>
             <Eyebrow>Más que una decisión financiera</Eyebrow>
             <h2 style={{ font: `400 ${isMobile ? '36px' : '64px'}/1.02 ${FONT_STACK}`, letterSpacing: '-0.035em', color: '#0A0B0D', margin: '24px 0 0' }}>
-              Comprar una vivienda<br />es <span style={{ color: '#3D8BF7' }}>mucho más</span><br />que una decisión<br />financiera.
+              Comprar una vivienda<br />o no perderla<br />es <span style={{ color: '#3D8BF7' }}>mucho más</span><br />que una decisión<br />financiera.
             </h2>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24, paddingTop: isMobile ? 8 : 32 }}>

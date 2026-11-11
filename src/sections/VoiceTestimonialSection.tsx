@@ -205,7 +205,7 @@ export function VoiceTestimonialSection() {
                   </span>
                 </div>
                 <div style={{ font: `400 14px/1.4 ${FONT_STACK}`, color: '#4B5563', marginTop: 4 }}>
-                  Firma de primera vivienda conseguida al 100%
+                  Firma de primera vivienda conseguida
                 </div>
               </div>
             </div>

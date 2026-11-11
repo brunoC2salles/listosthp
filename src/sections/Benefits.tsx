@@ -15,9 +15,9 @@ interface BenefitRowProps {
 }
 
 const BENEFITS: Benefit[] = [
-  { eyebrow: '01 — Casi sin ahorros', title: 'Consigue tu hipoteca casi sin ahorros', body: 'Trabajamos con más de 20 bancos, lo que nos permite acceder a mejores condiciones y encontrar opciones que se adapten a tu situación. Gracias a estos acuerdos, podemos ayudarte a conseguir financiación incluso sin necesidad de ahorros iniciales.', Icon: ShieldIcon, photoLabel: 'pareja firmando contrato', photo: 'https://i.postimg.cc/G3GhCYQ2/benefit-1.png' },
+  { eyebrow: '01 — Más de 20 bancos', title: 'Las mejores condiciones para tu hipoteca', body: 'Trabajamos con más de 20 bancos, lo que nos permite acceder a mejores condiciones y encontrar opciones que se adapten a tu situación.', Icon: ShieldIcon, photoLabel: 'pareja firmando contrato', photo: 'https://i.postimg.cc/G3GhCYQ2/benefit-1.png' },
   { eyebrow: '02 — Vivienda accesible', title: 'Viviendas más accesibles', body: 'Accedemos a propiedades de bancos que suelen tener precios más competitivos dentro del mercado. Esto nos permite ofrecerte oportunidades reales para conseguir una vivienda a un coste más asequible.', Icon: HomeIcon, photoLabel: 'edificio residencial moderno', photo: 'https://i.postimg.cc/wTkqtpZC/benefit-2.png' },
-  { eyebrow: '03 — Sin coste para ti', title: 'Servicio totalmente gratuito', body: 'Nuestro servicio no tiene ningún coste para ti. Nosotros cobramos de las entidades y colaboradores, por lo que puedes aprovechar todo nuestro acompañamiento sin pagar nada.', Icon: HeartIcon, photoLabel: 'familia mirando su nueva casa', photo: 'https://i.postimg.cc/HsmWsxZ4/benefit-3.png' },
+  { eyebrow: '03 — Renegociamos tu hipoteca', title: 'No pierdas tu casa', body: 'Si tu cuota se ha vuelto difícil de pagar, renegociamos tu hipoteca con el banco para que no pierdas tu vivienda. Y si lo que necesitas es liquidez, reorganizamos tu financiación para que tengas más margen cada mes.', Icon: HeartIcon, photoLabel: 'familia mirando su nueva casa', photo: 'https://i.postimg.cc/HsmWsxZ4/benefit-3.png' },
 ];
 
 export function Benefits() {
