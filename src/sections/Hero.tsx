@@ -19,7 +19,7 @@ export function Hero({ headline, cta, onCTA }: Props) {
             <Eyebrow>De inicio a fin contigo</Eyebrow>
             <h1 style={{ font: `400 ${isMobile ? '42px' : '80px'}/1.02 ${FONT_STACK}`, letterSpacing: '-0.04em', color: '#0A0B0D', margin: isMobile ? '20px 0 16px' : '32px 0 28px', textWrap: 'balance' }}>{headline}</h1>
             <p style={{ font: `400 18px/1.55 ${FONT_STACK}`, color: '#4B5563', margin: '0 0 32px', maxWidth: 540 }}>
-              Por esto te ofrecemos viviendas de banco más accesibles y te acompañamos en todo el proceso.
+              Por esto te acompañamos en todo el proceso, desde encontrar tu vivienda hasta la firma.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <Button size={isMobile ? "lg" : "xl"} onClick={onCTA} fullWidth={isMobile}>{cta}<ArrowRight size={18} /></Button>
